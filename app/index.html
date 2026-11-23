@@ -103,7 +103,7 @@ footer a{color:var(--muted)}
   </section>
 
   <section class="card">
-    <h3>Next 24 hours</h3>
+    <h3>Next 3 days</h3>
     <div id="next"></div>
   </section>
 
@@ -121,7 +121,7 @@ footer a{color:var(--muted)}
     <summary class="btn light" style="margin:0">Show more detail</summary>
     <h3 style="margin-top:18px">River flow at Walton</h3>
     <div id="chart"></div>
-    <small>Last 3 days and the forecast (dashed). Amber from 80–90, red from 130 m³/s.</small>
+    <small>Last 3 days and the next 3 days (dashed). Amber from 80–90, red from 130 m³/s.</small>
     <h3 style="margin-top:18px">Gauges</h3>
     <div id="gauges"></div>
     <h3 style="margin-top:18px">Check this phone's alerts</h3>
@@ -163,7 +163,7 @@ function render(s) {
   $("when").textContent = `River reading ${hm(s.latestReading)} · checked ${hm(s.generated)}`;
   $("share").href = "https://wa.me/?text=" + encodeURIComponent(shareText(s));
 
-  $("next").innerHTML = (s.forecast ?? []).map((f) => `<div class="row"><span>In ${f.hours} hours <small>(${when(f.time)})</small></span><b><span class="dot ${kind(f.state)}"></span>${SHORT[f.state]}</b></div>`).join("") || '<p class="muted">Forecast not available right now.</p>';
+  $("next").innerHTML = [...(s.forecast ?? []), ...(s.outlook ?? [])].map((f) => `<div class="row"><span>In ${f.hours >= 48 ? f.hours / 24 + " days" : f.hours + " hours"} <small>(${when(f.time)})</small></span><b><span class="dot ${kind(f.state)}"></span>${SHORT[f.state]}</b></div>`).join("") || '<p class="muted">Forecast not available right now.</p>';
 
   const aw = s.appleWeather;
   const met = aw?.alerts ?? [];
@@ -196,7 +196,7 @@ $("wx").addEventListener("click", () => { $("hrs")?.classList.toggle("hide"); co
 function drawChart(s) {
   const h = s.history ?? []; if (!h.length) return;
   const pts = h.map((p) => [Date.parse(p.time), p.flow]);
-  const fc = [[pts.at(-1)[0], pts.at(-1)[1]], ...(s.forecast ?? []).map((f) => [Date.parse(f.time), f.flow])];
+  const fc = [[pts.at(-1)[0], pts.at(-1)[1]], ...[...(s.forecast ?? []), ...(s.outlook ?? [])].map((f) => [Date.parse(f.time), f.flow])];
   const all = [...pts, ...fc], W = 520, H = 220, P = 30;
   const t0 = all[0][0], t1 = all.at(-1)[0], vMax = Math.max(140, ...all.map((p) => p[1])) * 1.05;
   const X = (t) => P + (t - t0) / (t1 - t0) * (W - P - 8), Y = (v) => H - 22 - v / vMax * (H - 34);
