@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Boards">
 <style>
@@ -268,7 +269,8 @@ $("testBtn").addEventListener("click", async () => {
   if (!sub) { $("testNote").textContent = "Turn on alerts first, using the button above."; return; }
   $("testNote").textContent = "Sending… it should arrive in a few seconds.";
   const r = await fetch(API + "/web-test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ subscription: sub }) });
-  $("testNote").textContent = r.ok ? "Sent. If nothing arrives, check notifications are allowed for this app in your phone's settings." : "Couldn't send a test just now.";
+  const j = r.ok ? await r.json().catch(() => ({})) : {};
+  $("testNote").textContent = j.status && j.status < 300 ? "Sent. If nothing arrives, check notifications are allowed for this app in your phone's settings." : "Couldn't send a test just now. Try turning alerts off and on in your phone's settings.";
 });
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(async (r) => { reg = await navigator.serviceWorker.ready; showAlertState(); });
